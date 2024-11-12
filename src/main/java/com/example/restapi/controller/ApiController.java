@@ -67,7 +67,7 @@ public class ApiController {
     // POST-запрос с использованием Map и ручной проверки
     @PostMapping("/login/map")
     public ResponseEntity<?> loginWithMap(@RequestBody Map<String, String> request) {
-        if (request.size() != 4) {
+        if (request.size() > 4) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request contains unexpected fields");
         }
 
