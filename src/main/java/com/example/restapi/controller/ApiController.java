@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Validated
 public class ApiController {
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/mydatabase";
+    private static final String URL = "jdbc:postgresql://192.168.56.1:5432/mydatabase";
     private static final String USER = "myuser";
     private static final String PASSWORD = "mypassword";
 
