@@ -32,6 +32,28 @@ public class ApiController {
         if (user == null) {
             throw new UserNotFoundException("User with login '" + login + "' not found");
         } else {
+            FileController.writeUserToFile(user,"insertFromDB.txt");
+            return ResponseEntity.ok(user);}
+    }
+
+    @GetMapping("/RandomStringFromFile")
+    public ResponseEntity<String> getRandomStringFromFile() {
+        String str = null;
+        str=FileController.readRandomStringFromFile("File.txt");
+        requestLatency();
+        return ResponseEntity.ok(str);
+    }
+
+
+
+
+    /* @GetMapping("/static")
+    public ResponseEntity<User> getStaticJson(@RequestParam String login) {
+        User user = DBConnectionController.selectByLogin(login);
+        requestLatency();
+        if (user == null) {
+            throw new UserNotFoundException("User with login '" + login + "' not found");
+        } else {
         return ResponseEntity.ok(user);}
     }
 
@@ -71,7 +93,7 @@ public class ApiController {
         requestLatency();
         return ResponseEntity.ok(user);
     }
-
+    */
 
 
     // Обработчик ошибок валидации
