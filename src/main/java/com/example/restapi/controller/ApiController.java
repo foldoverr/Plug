@@ -27,41 +27,12 @@ public class ApiController {
 
     @GetMapping("/static")
     public ResponseEntity<User> getStaticJson(@RequestParam String login) {
-        Connection connection = null;
-        Statement statement = null;
-        ResultSet resultSet = null;
-        User user = null;
-        try{
-            connection = getConnection();
-            statement = connection.createStatement();
-            String query = "SELECT u.login, u.password, e.email, u.date " +
-                    "FROM user_login u LEFT JOIN user_email e ON u.login = e.login " +
-                    "WHERE u.login = '" + login + "'";
-            resultSet = statement.executeQuery(query);
-            if (resultSet.next()) {
-                String password = resultSet.getString("password");
-                String email = resultSet.getString("email");
-                Timestamp date = resultSet.getTimestamp("date");
-                user = new User(login, password, date, email);
-            }
-            if (user == null) {
-                throw new UserNotFoundException("User with login '" + login + "' not found");
-            }
-        }
-        catch (SQLException e){
-            e.printStackTrace();
-        } finally {
-            try {
-                if (resultSet != null) resultSet.close();
-                if (statement != null) statement.close();
-                if (connection != null) connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
+        User user = DBConnectionController.selectByLogin(login);
         requestLatency();
-        return ResponseEntity.ok(user);
+        if (user == null) {
+            throw new UserNotFoundException("User with login '" + login + "' not found");
+        } else {
+        return ResponseEntity.ok(user);}
     }
 
     // POST-запрос с использованием Map и ручной проверки
@@ -70,7 +41,7 @@ public class ApiController {
         if (request.size() > 4) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request contains unexpected fields");
         }
-
+        int rowsUpdated = 0;
         String login = request.get("login");
         String password = request.get("password");
         String email = request.get("email");
@@ -89,22 +60,7 @@ public class ApiController {
         }
 
         User user = new User(login, password, date, email);
-        String insertUserLogin = "INSERT INTO user_login (login, password, date) VALUES (?, ?, ?); \n INSERT INTO user_email (login, email) VALUES (?, ?);";
-        int rowsUpdated = 0;
-
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(insertUserLogin)) {
-            connection.setAutoCommit(false);
-            statement.setString(1, user.getLogin());
-            statement.setString(2, user.getPassword());
-            statement.setTimestamp(3, user.getDate());
-            statement.setString(4, user.getLogin());
-            statement.setString(5, user.getEmail());
-            rowsUpdated = statement.executeUpdate();
-            connection.commit();  // Завершаем транзакцию
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        rowsUpdated = DBConnectionController.insertUser(user);
         requestLatency();
         return ResponseEntity.ok(rowsUpdated);
     }
